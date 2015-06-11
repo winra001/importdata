@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 
 import javax.servlet.ServletException;
@@ -18,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -44,7 +47,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
   `category2` VARCHAR(200) NULL,
   `title` VARCHAR(1000) NULL,
   `description` VARCHAR(1000) NULL,
-  `venue` VARCHAR(45) NULL,
+  `venue` VARCHAR(150) NULL,
   `speaker` VARCHAR(100) NULL,
   PRIMARY KEY (`id`))
   ENGINE = InnoDB
@@ -184,38 +187,65 @@ public class ReadExcelServlet extends HttpServlet {
 			
 			int count = 0;
 			String sql = "";
-			String startDate = "";
-			String endDate = "";
+			String sDay = "";
+			String sTime = "";
+			String eDay = "";
+			String eTime = "";
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 			
 			while (rowIterator.hasNext()) {
 				Row row = rowIterator.next();
-				Iterator<Cell> cellIterator = row.cellIterator();
+				
+				if (row.getCell(0) == null || row.getCell(0).toString().trim().equals("")) {
+					break;
+				}
 				
 				count += 1;
 				insertValue = "";
 				
-				COLUMN_COUNT = 9;
-				sql = "insert into speaker (start_date, end_date, category1, category2, title, description, venue, speaker, id) values (";
+				COLUMN_COUNT = 10;
+				sql = "insert into program (start_date, end_date, category1, category2, venue, title, description, speaker, id) values (";
 				
-
 				for (int i = 0; i < COLUMN_COUNT; i++) {
 					cellValue = row.getCell(i) == null ? "" : row.getCell(i).toString();
 					
-					System.out.println(row.getCell(i).getCellType());
-					
-					if (i == 0) {
-						startDate = cellValue;
-						endDate = cellValue;
+					if (i == 0) {	// Start Date
+						if (HSSFDateUtil.isCellDateFormatted(row.getCell(i))) {
+							sDay = dateFormat.format(row.getCell(i).getDateCellValue());
+							sDay = sDay.substring(0, 10);
+						}
+						
 						continue;
-					} else if (i == 1) {
-						cellValue = startDate + " " + cellValue;
-					} else if (i == 2) {
-						cellValue = endDate + " " + cellValue;
+					} else if (i == 1) {	// Start Time
+						if (HSSFDateUtil.isCellDateFormatted(row.getCell(i))) {
+							sTime = dateFormat.format(row.getCell(i).getDateCellValue());
+							sTime = sTime.substring(11, sTime.length());
+						}
+						
+						cellValue = "STR_TO_DATE('" + sDay + " " + sTime + "', '%d/%m/%Y %H:%i')";
+					} else if (i == 2) {	// End Date
+						if (HSSFDateUtil.isCellDateFormatted(row.getCell(i))) {
+							eDay = dateFormat.format(row.getCell(i).getDateCellValue());
+							eDay = eDay.substring(0, 10);
+						}
+						
+						continue;
+					} else if (i == 3) {	// End Time
+						if (HSSFDateUtil.isCellDateFormatted(row.getCell(i))) {
+							eTime = dateFormat.format(row.getCell(i).getDateCellValue());
+							eTime = eTime.substring(11, eTime.length());
+						}
+						
+						cellValue = "STR_TO_DATE('" + eDay + " " + eTime + "', '%d/%m/%Y %H:%i')";
 					}
 					
-					cellValue = cellValue.replace("'", "\\'");
-					
-					insertValue += "'" + cellValue + "',";
+					if (i < 4) {
+						insertValue += cellValue + ",";
+					} else {
+						cellValue = cellValue.replace("'", "\\'");
+						
+						insertValue += "'" + cellValue + "',";
+					}
 				}
 				
 				sql = sql + insertValue + count + ")";
@@ -229,6 +259,7 @@ public class ReadExcelServlet extends HttpServlet {
 			request.setAttribute("message", count + " rows inserted Successfully");
 		} catch (Exception ex) {
 			request.setAttribute("message", "Parsing Failed due to " + ex);
+			ex.printStackTrace();
 		} finally {
 			if (statement != null) {
 				try {
