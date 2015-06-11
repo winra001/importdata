@@ -1,4 +1,4 @@
-CREATE TABLE `database_name`.`speaker` (
+CREATE TABLE `database`.`speaker` (
   `id` INT NOT NULL,
   `first_name` VARCHAR(50) NULL,
   `last_name` VARCHAR(50) NULL,
@@ -7,7 +7,7 @@ CREATE TABLE `database_name`.`speaker` (
   `description` VARCHAR(5000) NULL,
 PRIMARY KEY (`id`));
   
-CREATE TABLE `database_name`.`program` (
+CREATE TABLE `database`.`program` (
   `id` INT NOT NULL,
   `start_date` DATETIME NULL,
   `end_date` DATETIME NULL,
@@ -21,7 +21,7 @@ PRIMARY KEY (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
   
-CREATE TABLE `test4`.`venue` (
+CREATE TABLE `database`.`venue` (
   `id` INT NOT NULL,
   `name` VARCHAR(200) NULL,
   PRIMARY KEY (`id`))
