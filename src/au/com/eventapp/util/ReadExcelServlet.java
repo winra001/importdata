@@ -5,11 +5,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -29,30 +32,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 /**
  * @see http://docs.oracle.com/javaee/6/tutorial/doc/glraq.html
  * @see http://stackoverflow.com/questions/4929646/how-to-get-an-excel-blank-cell-value-in-apache-poi
- * 
- * CREATE TABLE `database_name`.`speaker` (
-  `id` INT NOT NULL,
-  `first_name` VARCHAR(50) NULL,
-  `last_name` VARCHAR(50) NULL,
-  `position` VARCHAR(100) NULL,
-  `company` VARCHAR(100) NULL,
-  `description` VARCHAR(5000) NULL,
-  PRIMARY KEY (`id`));
-  
-  CREATE TABLE `database_name`.`program` (
-  `id` INT NOT NULL,
-  `start_date` DATETIME NULL,
-  `end_date` DATETIME NULL,
-  `category1` VARCHAR(100) NULL,
-  `category2` VARCHAR(200) NULL,
-  `title` VARCHAR(1000) NULL,
-  `description` VARCHAR(1000) NULL,
-  `venue` VARCHAR(150) NULL,
-  `speaker` VARCHAR(100) NULL,
-  PRIMARY KEY (`id`))
-  ENGINE = InnoDB
-  DEFAULT CHARACTER SET = utf8;
- * 
  */
 @WebServlet(name = "ReadExcelServlet", urlPatterns = {"/upload"})
 @MultipartConfig
@@ -149,22 +128,6 @@ public class ReadExcelServlet extends HttpServlet {
 			request.setAttribute("message", count + " rows inserted Successfully");
 		} catch (Exception ex) {
 			request.setAttribute("message", "Parsing Failed due to " + ex);
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 	}
 	
@@ -255,27 +218,42 @@ public class ReadExcelServlet extends HttpServlet {
 			}
 			
 			workbook.close();
-			
-			request.setAttribute("message", count + " rows inserted Successfully");
 		} catch (Exception ex) {
 			request.setAttribute("message", "Parsing Failed due to " + ex);
 			ex.printStackTrace();
-		} finally {
-			if (statement != null) {
-				try {
-					statement.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Insert venue data
+	 */
+	private void insertVenue(HttpServletRequest request, Connection conn, Statement statement) {
+		int count = 0;
+		String venue = "";
+		String iSql = "";
+		List<String> iSqlList = new ArrayList<String>();
+		String sSql = "SELECT DISTINCT venue FROM program WHERE venue IS NOT null AND venue != ''";
+		
+		try {
+			ResultSet rs = statement.executeQuery(sSql);
+			
+			while (rs.next()) {
+				venue = rs.getString(1).trim();
+				
+				if (!venue.isEmpty()) {
+					count += 1;
+					iSql = "INSERT INTO venue (name, id) values('" + venue + "', " + count + ")";
+					iSqlList.add(iSql);
 				}
 			}
 			
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+			for (String query : iSqlList) {
+				System.out.println(query);
+				
+				statement.execute(query);
 			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -309,9 +287,28 @@ public class ReadExcelServlet extends HttpServlet {
 				insertSpeaker(request, filepath, filename, conn, statement);
 			} else if (filename.toLowerCase().startsWith("program")) {
 				insertProgram(request, filepath, filename, conn, statement);
+				insertVenue(request, conn, statement);
 			}
+			
+			request.setAttribute("message", "Program and Venue data has been inserted successfully.");
 		} else {
 			request.setAttribute("message", "Sorry this Servlet only handles file upload request");
+		}
+		
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if (statement != null) {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 
 		request.getRequestDispatcher("/result.jsp").forward(request, response);
