@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -252,6 +251,74 @@ public class ReadExcelServlet extends HttpServlet {
 				
 				statement.execute(query);
 			}
+			
+			if (rs != null) {
+				rs.close();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Insert category data
+	 */
+	private void insertCategory(HttpServletRequest request, Connection conn, Statement statement) {
+		int count = 0;
+		String category1 = "";
+		String category2 = "";
+		String iSql = "";
+		List<String> category1List = new ArrayList<String>();
+		List<String> category2List = new ArrayList<String>();
+		
+		String c1sql = "SELECT DISTINCT category1 FROM program";
+		String c2sql = "SELECT DISTINCT category2 FROM program WHERE TRIM(category2) != ''";
+		
+		try {
+			// Category 1 (code : 100)
+			ResultSet rs1 = statement.executeQuery(c1sql);
+			
+			while (rs1.next()) {
+				category1 = rs1.getString(1).trim();
+				
+				if (!category1.isEmpty()) {
+					count += 1;
+					iSql = "INSERT INTO category (code, category, id) values(100, '" + category1 + "', " + count + ")";
+					category1List.add(iSql);
+				}
+			}
+			
+			for (String query : category1List) {
+				System.out.println(query);
+				
+				statement.execute(query);
+			}
+			
+			// Category 2 (code : 200)
+			ResultSet rs2 = statement.executeQuery(c2sql);
+			
+			while (rs2.next()) {
+				category2 = rs2.getString(1).trim();
+				
+				if (!category2.isEmpty()) {
+					count += 1;
+					iSql = "INSERT INTO category (code, category, id) values(200, '" + category2 + "', " + count + ")";
+					category2List.add(iSql);
+				}
+			}
+			
+			for (String query : category2List) {
+				System.out.println(query);
+				
+				statement.execute(query);
+			}
+			
+			if (rs1 != null) {
+				rs1.close();
+			}
+			if (rs2 != null) {
+				rs2.close();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -288,6 +355,7 @@ public class ReadExcelServlet extends HttpServlet {
 			} else if (filename.toLowerCase().startsWith("program")) {
 				insertProgram(request, filepath, filename, conn, statement);
 				insertVenue(request, conn, statement);
+				insertCategory(request, conn, statement);
 			}
 			
 			request.setAttribute("message", "Program and Venue data has been inserted successfully.");

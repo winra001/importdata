@@ -27,3 +27,11 @@ CREATE TABLE `database`.`venue` (
   PRIMARY KEY (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE `database`.`category` (
+  `id` INT NOT NULL,
+  `code` INT(3) NOT NULL,
+  `category` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
