@@ -1,3 +1,4 @@
+-- speaker
 CREATE TABLE `database`.`speaker` (
   `id` INT NOT NULL,
   `first_name` VARCHAR(50) NULL,
@@ -5,8 +6,11 @@ CREATE TABLE `database`.`speaker` (
   `position` VARCHAR(100) NULL,
   `company` VARCHAR(100) NULL,
   `description` VARCHAR(5000) NULL,
+  `photo` VARCHAR(100) NULL,
+  `abstracts` VARCHAR(100) NULL,
 PRIMARY KEY (`id`));
-  
+
+-- program
 CREATE TABLE `database`.`program` (
   `id` INT NOT NULL,
   `start_date` DATETIME NULL,
@@ -20,7 +24,8 @@ CREATE TABLE `database`.`program` (
 PRIMARY KEY (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
-  
+
+-- venue
 CREATE TABLE `database`.`venue` (
   `id` INT NOT NULL,
   `name` VARCHAR(200) NULL,
@@ -33,5 +38,51 @@ CREATE TABLE `database`.`category` (
   `code` INT(3) NOT NULL,
   `category` VARCHAR(100) NOT NULL,
   PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- program_speaker
+CREATE TABLE `database`.`program_speaker` (
+  `program_id` INT(11) NOT NULL,
+  `speaker_id` INT(11) NOT NULL,
+  PRIMARY KEY (`program_id`, `speaker_id`),
+  INDEX `fk_speaker_id_idx` (`speaker_id` ASC),
+  CONSTRAINT `fk_program_id`
+    FOREIGN KEY (`program_id`)
+    REFERENCES `test4`.`program` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_speaker_id`
+    FOREIGN KEY (`speaker_id`)
+    REFERENCES `test4`.`speaker` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- abstracts
+CREATE TABLE `database`.`abstracts` (
+  `id` INT(11) NOT NULL,
+  `filename` VARCHAR(300) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- speaker_abstracts
+CREATE TABLE `database`.`speaker_abstracts` (
+  `speaker_id` INT(11) NOT NULL,
+  `abstracts_id` INT(11) NOT NULL,
+  PRIMARY KEY (`speaker_id`, `abstracts_id`),
+  INDEX `fk_abstracts_id_idx` (`abstracts_id` ASC),
+  CONSTRAINT `fk_speaker_id_2`
+    FOREIGN KEY (`speaker_id`)
+    REFERENCES `test4`.`speaker` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_abstracts_id`
+    FOREIGN KEY (`abstracts_id`)
+    REFERENCES `test4`.`abstracts` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

@@ -324,6 +324,12 @@ public class ReadExcelServlet extends HttpServlet {
 		}
 	}
 	
+	/**
+	 * Insert program_speaker
+	 */
+	private void insertProgramSpeaker(HttpServletRequest request, Connection conn, Statement statement) {
+	}
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html;charset=UTF-8");
@@ -356,6 +362,7 @@ public class ReadExcelServlet extends HttpServlet {
 				insertProgram(request, filepath, filename, conn, statement);
 				insertVenue(request, conn, statement);
 				insertCategory(request, conn, statement);
+				insertProgramSpeaker(request, conn, statement);
 			}
 			
 			request.setAttribute("message", "Program and Venue data has been inserted successfully.");
