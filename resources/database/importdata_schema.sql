@@ -49,12 +49,12 @@ CREATE TABLE `database`.`program_speaker` (
   INDEX `fk_speaker_id_idx` (`speaker_id` ASC),
   CONSTRAINT `fk_program_id`
     FOREIGN KEY (`program_id`)
-    REFERENCES `test4`.`program` (`id`)
+    REFERENCES `database`.`program` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_speaker_id`
     FOREIGN KEY (`speaker_id`)
-    REFERENCES `test4`.`speaker` (`id`)
+    REFERENCES `database`.`speaker` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -76,12 +76,12 @@ CREATE TABLE `database`.`speaker_abstracts` (
   INDEX `fk_abstracts_id_idx` (`abstracts_id` ASC),
   CONSTRAINT `fk_speaker_id_2`
     FOREIGN KEY (`speaker_id`)
-    REFERENCES `test4`.`speaker` (`id`)
+    REFERENCES `database`.`speaker` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_abstracts_id`
     FOREIGN KEY (`abstracts_id`)
-    REFERENCES `test4`.`abstracts` (`id`)
+    REFERENCES `database`.`abstracts` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
