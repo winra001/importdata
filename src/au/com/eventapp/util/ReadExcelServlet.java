@@ -10,8 +10,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -327,7 +330,63 @@ public class ReadExcelServlet extends HttpServlet {
 	/**
 	 * Insert program_speaker
 	 */
-	private void insertProgramSpeaker(HttpServletRequest request, Connection conn, Statement statement) {
+	private void insertProgramSpeaker(HttpServletRequest request, Connection conn) {
+		Map<Integer, String> speakerMap = new HashMap<Integer, String>();
+		Map<Integer, String> programMap = new HashMap<Integer, String>();
+		
+		String sql1 = "SELECT id, first_name, last_name FROM speaker";
+		String sql2 = "SELECT id, speaker FROM program";
+		String sql3 = "";
+		
+		try {
+			Statement statement1 = conn.createStatement();
+			Statement statement2 = conn.createStatement();
+			
+			ResultSet rs1 = statement1.executeQuery(sql1);
+			ResultSet rs2 = statement2.executeQuery(sql2);
+			
+			while (rs1.next()) {
+				speakerMap.put(rs1.getInt("id"), rs1.getString("first_name") + " " + rs1.getString("last_name"));
+			}
+			
+			while (rs2.next()) {
+				programMap.put(rs2.getInt("id"), rs2.getString("speaker"));
+			}
+			
+			if (rs1 != null) {
+				rs1.close();
+			}
+			if (rs2 != null) {
+				rs2.close();
+			}
+			statement1.close();
+			statement2.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			Statement statement3 = conn.createStatement();
+			
+			for (Entry<Integer, String> speaker : speakerMap.entrySet()) {
+				System.out.println(speaker.getKey() + " - " + speaker.getValue());
+				
+				for (Entry<Integer, String> program : programMap.entrySet()) {
+					System.out.println("program : " + program.getKey() + " - " + program.getValue());
+					
+					if (program.getValue().contains(speaker.getValue())) {
+						sql3 = "INSERT program_speaker (program_id, speaker_id) VALUES (" + program.getKey() + "," + speaker.getKey() + ")";
+						System.out.println(sql3);
+						
+						statement3.execute(sql3);
+					}
+				}
+			}
+			
+			statement3.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -362,7 +421,7 @@ public class ReadExcelServlet extends HttpServlet {
 				insertProgram(request, filepath, filename, conn, statement);
 				insertVenue(request, conn, statement);
 				insertCategory(request, conn, statement);
-				insertProgramSpeaker(request, conn, statement);
+				insertProgramSpeaker(request, conn);
 			}
 			
 			request.setAttribute("message", "Program and Venue data has been inserted successfully.");
