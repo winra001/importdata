@@ -389,11 +389,70 @@ public class ReadExcelServlet extends HttpServlet {
 		}
 	}
 	
+	private void insertAbstracts(HttpServletRequest request, String filepath, Connection conn, String firstname, String lastname) {
+		try {
+			int speakerId = 0;
+			int abstractsId = 0;
+			Statement statement1 = conn.createStatement();
+			Statement statement2 = conn.createStatement();
+			Statement statement3 = conn.createStatement();
+			Statement statement4 = conn.createStatement();
+			
+			String sql1 = "SELECT id FROM speaker WHERE first_name = '" + firstname + "' AND last_name = '" + lastname + "'";
+			String sql2 = "SELECT MAX(id) AS id FROM abstracts";
+			String sql3 = "";
+			String sql4 = "";
+			
+			ResultSet rs1 = statement1.executeQuery(sql1);
+			
+			while (rs1.next()) {
+				speakerId = rs1.getInt("id");
+			}
+			
+			if (speakerId < 1) {
+				return;
+			}
+			
+			ResultSet rs2 = statement2.executeQuery(sql2);
+			while (rs2.next()) {
+				abstractsId = rs2.getInt("id");
+			}
+			abstractsId += 1;
+			
+			File folder = new File(filepath);
+			File[] filelist = folder.listFiles();
+			for (int i = 0; i < filelist.length; i++) {
+				if (filelist[i].isFile()) {
+					sql3 = "INSERT INTO abstracts (id, filename) VALUES (" + abstractsId + ", '" + filelist[i].getName() +"')";
+					sql4 = "INSERT INTO speaker_abstracts (speaker_id, abstracts_id) VALUES (" + speakerId + ", " + abstractsId +")";
+					
+					System.out.println(sql3);
+					System.out.println(sql4);
+					
+					statement3.execute(sql3);
+					statement4.execute(sql4);
+					
+					abstractsId += 1;
+				}
+			}
+			
+			statement1.close();
+			statement2.close();
+			statement3.close();
+			statement4.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html;charset=UTF-8");
 		
 		final String filepath = request.getParameter("filepath");
+		final String filetype = request.getParameter("filetype");
+		final String firstname = request.getParameter("firstname");
+		final String lastname = request.getParameter("lastname");
 		final String url = request.getParameter("url");
 		final String database = request.getParameter("database");
 		final String id = request.getParameter("id");
@@ -415,13 +474,15 @@ public class ReadExcelServlet extends HttpServlet {
 		String filename = getFileName(request.getPart("file"));
 		
 		if (ServletFileUpload.isMultipartContent(request)) {
-			if (filename.toLowerCase().startsWith("speaker")) {
+			if (filetype.equalsIgnoreCase("speaker")) {
 				insertSpeaker(request, filepath, filename, conn, statement);
-			} else if (filename.toLowerCase().startsWith("program")) {
+			} else if (filetype.equalsIgnoreCase("program")) {
 				insertProgram(request, filepath, filename, conn, statement);
 				insertVenue(request, conn, statement);
 				insertCategory(request, conn, statement);
 				insertProgramSpeaker(request, conn);
+			} else if (filetype.equalsIgnoreCase("abstracts")) {
+				insertAbstracts(request, filepath, conn, firstname, lastname);
 			}
 			
 			request.setAttribute("message", "Program and Venue data has been inserted successfully.");
