@@ -483,6 +483,8 @@ public class ReadExcelServlet extends HttpServlet {
 				insertProgramSpeaker(request, conn);
 			} else if (filetype.equalsIgnoreCase("abstracts")) {
 				insertAbstracts(request, filepath, conn, firstname, lastname);
+			} else {
+				return;
 			}
 			
 			request.setAttribute("message", "Program and Venue data has been inserted successfully.");
